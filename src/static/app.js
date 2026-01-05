@@ -34,6 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     technology: { label: "Technology", color: "#e8eaf6", textColor: "#3949ab" },
   };
 
+  // Helper function to escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
@@ -553,7 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </ul>
       </div>
       <div class="social-share-container">
-        <button class="share-button" data-activity="${name}" data-description="${details.description}" data-schedule="${formattedSchedule}" title="Share this activity">
+        <button class="share-button" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formattedSchedule)}" title="Share this activity">
           🔗 Share
         </button>
         <div class="share-options hidden">
@@ -660,13 +667,31 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
       
       case 'copy':
-        // Copy link to clipboard
-        navigator.clipboard.writeText(url).then(() => {
-          showMessage('Link copied to clipboard!', 'success');
-        }).catch((error) => {
-          console.error('Failed to copy:', error);
-          showMessage('Failed to copy link', 'error');
-        });
+        // Copy link to clipboard with fallback for older browsers
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(() => {
+            showMessage('Link copied to clipboard!', 'success');
+          }).catch((error) => {
+            console.error('Failed to copy:', error);
+            showMessage('Failed to copy link', 'error');
+          });
+        } else {
+          // Fallback for browsers without clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = url;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            showMessage('Link copied to clipboard!', 'success');
+          } catch (error) {
+            console.error('Failed to copy:', error);
+            showMessage('Failed to copy link. Please copy manually: ' + url, 'error');
+          }
+          document.body.removeChild(textArea);
+        }
         break;
     }
   }
@@ -674,7 +699,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Close share menus when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.social-share-container')) {
-      document.querySelectorAll('.share-options').forEach(options => {
+      const openMenus = document.querySelectorAll('.share-options:not(.hidden)');
+      openMenus.forEach(options => {
         options.classList.add('hidden');
       });
     }
