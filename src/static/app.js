@@ -552,6 +552,18 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="social-share-container">
+        <button class="share-button" data-activity="${name}" data-description="${details.description}" data-schedule="${formattedSchedule}" title="Share this activity">
+          🔗 Share
+        </button>
+        <div class="share-options hidden">
+          <button class="share-option twitter" data-platform="twitter">𝕏</button>
+          <button class="share-option facebook" data-platform="facebook">f</button>
+          <button class="share-option linkedin" data-platform="linkedin">in</button>
+          <button class="share-option email" data-platform="email">✉</button>
+          <button class="share-option copy" data-platform="copy">📋</button>
+        </div>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -587,8 +599,86 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Add click handler for share button
+    const shareButton = activityCard.querySelector(".share-button");
+    const shareOptions = activityCard.querySelector(".share-options");
+    
+    shareButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // Close all other open share menus
+      document.querySelectorAll(".share-options").forEach(options => {
+        if (options !== shareOptions) {
+          options.classList.add("hidden");
+        }
+      });
+      // Toggle current menu
+      shareOptions.classList.toggle("hidden");
+    });
+
+    // Add click handlers for share option buttons
+    const shareOptionButtons = activityCard.querySelectorAll(".share-option");
+    shareOptionButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const platform = button.dataset.platform;
+        const activityName = shareButton.dataset.activity;
+        const description = shareButton.dataset.description;
+        const schedule = shareButton.dataset.schedule;
+        handleShare(platform, activityName, description, schedule);
+        shareOptions.classList.add("hidden");
+      });
+    });
+
     activitiesList.appendChild(activityCard);
   }
+
+  // Handle social sharing
+  function handleShare(platform, activityName, description, schedule) {
+    const url = window.location.href;
+    const text = `Check out ${activityName} at Mergington High School! ${description} - ${schedule}`;
+    
+    switch (platform) {
+      case 'twitter':
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        window.open(twitterUrl, '_blank', 'width=550,height=420');
+        break;
+      
+      case 'facebook':
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+        window.open(facebookUrl, '_blank', 'width=550,height=420');
+        break;
+      
+      case 'linkedin':
+        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        window.open(linkedinUrl, '_blank', 'width=550,height=420');
+        break;
+      
+      case 'email':
+        const emailSubject = `Check out ${activityName} at Mergington High School`;
+        const emailBody = `${text}\n\n${url}`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        break;
+      
+      case 'copy':
+        // Copy link to clipboard
+        navigator.clipboard.writeText(url).then(() => {
+          showMessage('Link copied to clipboard!', 'success');
+        }).catch((error) => {
+          console.error('Failed to copy:', error);
+          showMessage('Failed to copy link', 'error');
+        });
+        break;
+    }
+  }
+
+  // Close share menus when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.social-share-container')) {
+      document.querySelectorAll('.share-options').forEach(options => {
+        options.classList.add('hidden');
+      });
+    }
+  });
 
   // Event listeners for search and filter
   searchInput.addEventListener("input", (event) => {
