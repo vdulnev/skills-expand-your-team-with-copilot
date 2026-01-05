@@ -166,13 +166,13 @@ initial_activities = {
     },
     "Manga Maniacs": {
         "description": "Unleash your inner hero! Dive into epic adventures, mysterious powers, and unforgettable characters from the world of Japanese Manga. Whether you're into shonen action, shojo romance, or mind-bending seinen stories, join fellow manga enthusiasts to discuss your favorite series and discover new ones!",
-        "schedule": "Tuesdays, 7:00 PM - 8:00 PM",
+        "schedule": "Tuesdays, 5:00 PM - 6:00 PM",
         "schedule_details": {
             "days": ["Tuesday"],
-            "start_time": "19:00",
-            "end_time": "20:00"
+            "start_time": "17:00",
+            "end_time": "18:00"
         },
-        "max_participants": 15,
+        "max_participants": 25,
         "participants": []
     }
 }
